@@ -18,14 +18,18 @@ Marcus Eide
 #include "printf.h"
 
 //Servo pinout
-#define L_MOTOR 1
-#define R_MOTOR 2
+#define L_MOTOR 5
+#define R_MOTOR 6
+
+//Radio pinout
+#define RADIO_1 7
+#define RADIO_2 8
 
 //Pipe address
 const uint64_t pipeIn =  0xB00B1E5000LL;
 
-//Pins for the radio
-RF24 radio(7, 8);
+//Define radio
+RF24 radio(RADIO_1, RADIO_2);
 
 /* Struct to hold variables from receiver
 The size of this struct should not exceed 32 bytes */
@@ -43,9 +47,8 @@ struct packetdata {
 //Data object
 packetdata data;
 
-//Left ESC servo object
+//Servo ESC objects
 Servo left_servo;
-//Right ESC servo object
 Servo right_servo;
 
 void setup()
@@ -62,12 +65,8 @@ void setup()
   radio.printDetails();
 
   //Attach servos
-  left_servo.attach(L_MOTOR);
-  left_servo.attach(R_MOTOR);
-
-  //Initialize motors, so they don't spin around.
-  motor1.drive(0);
-  motor2.drive(0);
+  left_motor.attach(L_MOTOR);
+  right_motor.attach(R_MOTOR);
 }
 
 void loop() {
@@ -76,51 +75,39 @@ void loop() {
   radio.read(&data, sizeof(packetdata));
 
   //DRIVE
-  //FORWARD
-  if (data.throttle > 125) {
+  //LEFT FORWARD
+  if (data.L_UD > 125) {
+    int map_L_U = map(data.L_UD, 125, 255, 0, 255);
+    left_motor.write(map_L_U);
 
-  int mapd_forward = map(data.throttle, 125, 255, 0, 255);
-  motor1.drive(mapd_forward);
+delay(10);
+    }else if (data.L_UD >= 125){
+    left_motor.write(0);
+    }
+delay(10);
 
-    delay(10);
-  }else if (data.throttle >= 125){
-  motor1.drive(0);
+   //LEFT BACKWARD
+     if (data.L_UD < 118) {
+     int map_L_D = map(data.L_UD, 118, 0, 0, -255);
+     left_motor.write(map_L_D);
+     }
+
+     //RIGHT FORWARD
+     if (data.R_UD > 125) {
+       int map_R_U = map(data.R_UD, 125, 255, 0, 255);
+       left_motor.write(map_R_U);
+
+   delay(10);
+ }else if (data.R_UD >= 125){
+       right_motor.write(0);
+       }
+   delay(10);
+
+      //RIGHT BACKWARD
+        if (data.R_UD < 118) {
+        int map_R_D = map(data.R_UD, 118, 0, 0, -255);
+        right_motor.write(map_R_D);
+        }
+
   }
- delay(10);
-
-  //BACKWARD
-  if (data.throttle < 118) {
-  int mapd_backward = map(data.throttle, 118, 0, 0, -255);
-  motor1.drive(mapd_backward);
-  }
-
-  //FORKLIFT ARMS
-  //LIFT
-  if(data.pitch > 140) {
-
-    motor2.drive(data.pitch/lSpeed);
-
-  }else if (data.pitch >= 140){
-   motor2.drive(0);
-  }else{
-  motor2.drive(0);
-  }
-  //LOWER
- if (data.pitch < 135) {
-  int mapped = map(data.pitch, 135, 0, 0, -255);
-
-  motor2.drive(mapped/lSpeed);
-  }
-
-  //SERVO
-  //Map steering input to fit servo
-  int degree = map(data.roll, 0, 255, 91, 69);
-  //Write the mapped data to the servo
-  steering.write(degree);
-
-  }else{
-  //Reset truck to zero pos.
-  motor1.drive(0);
-  motor2.drive(0);
-  steering.write(88);
-  }
+}
