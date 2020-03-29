@@ -1,13 +1,14 @@
 /*
-Sketch for the RC forklift
+3D printed tanks 2020
+Main reveiver sketch
+
+29.03.2020
+Marcus Eide
 */
 
-//Motor driver library
-#include <SparkFun_TB6612.h>
+//Libraries
 //Servo library
 #include <Servo.h>
-//Wire library to send commands for lights
-#include <Wire.h>
 //SPI library
 #include <SPI.h>
 //nRF24L01 libraries
@@ -16,14 +17,9 @@ Sketch for the RC forklift
 //printf.h sketch for printing out nRF24l01 information
 #include "printf.h"
 
-//Motor driver pins
-#define AIN1 2
-#define BIN1 3
-#define AIN2 4
-#define BIN2 10
-#define PWMA 5
-#define PWMB 6
-#define STBY 0
+//Servo pinout
+#define L_MOTOR 1
+#define R_MOTOR 2
 
 //Pipe address
 const uint64_t pipeIn =  0xB00B1E5000LL;
@@ -33,44 +29,28 @@ RF24 radio(7, 8);
 
 /* Struct to hold variables from receiver
 The size of this struct should not exceed 32 bytes */
-struct MyData {
-  byte throttle;
-  byte yaw;
-  byte pitch;
-  byte roll;
-  byte dial1;
-  byte dial2;
-  byte switch1;
-  byte switch2;
+struct packetdata {
+  byte L_UD; //Left stick Up-Down
+  byte L_LR; //Left stick Left-Right
+  byte R_UD; //Right stick Up-Down
+  byte L_LR; //Right stick Left-Right
+  byte dial1; //Left dial
+  byte dial2; // Right dial
+  byte switch1; //Left switch
+  byte switch2; //Right switch
 };
 
 //Data object
-MyData data;
+packetdata data;
 
-//Variables used to reverse the rotation of motors
-const int offsetA = 1;
-const int offsetB = -1;
-
-// Initializing motors.
-Motor motor1 = Motor(AIN1, AIN2, PWMA, offsetA, STBY);
-Motor motor2 = Motor(BIN1, BIN2, PWMB, offsetB, STBY);
-
-//Servo object
-Servo steering;
-
-//Last value sent to the light controller Arduino
-int lastValue1 = 0;
-int lastValue2 = 0;
-int lastValue3 = 0;
-int lastValue4 = 0;
-
-//Motor speed dividers
-int lSpeed = 2;
+//Left ESC servo object
+Servo left_servo;
+//Right ESC servo object
+Servo right_servo;
 
 void setup()
 {
    Serial.begin(9600);
-   Wire.begin();
    printf_begin();
 
   // Set up radio module
@@ -81,8 +61,9 @@ void setup()
   radio.startListening();
   radio.printDetails();
 
-  //Attach servo
-  steering.attach(9);
+  //Attach servos
+  left_servo.attach(L_MOTOR);
+  left_servo.attach(R_MOTOR);
 
   //Initialize motors, so they don't spin around.
   motor1.drive(0);
@@ -92,7 +73,7 @@ void setup()
 void loop() {
 
   if ( radio.available() ) {
-  radio.read(&data, sizeof(MyData));
+  radio.read(&data, sizeof(packetdata));
 
   //DRIVE
   //FORWARD
@@ -143,52 +124,3 @@ void loop() {
   motor2.drive(0);
   steering.write(88);
   }
-
-  //LED controller
-  Wire.beginTransmission(8); // transmit to device #8
-  Serial.print("Switch1: ");
-  Serial.println(data.switch1);
-
-  Serial.print("Switch2: ");
-  Serial.println(data.switch2);
-
-  //Button 1
-  if (lastValue1 != data.switch1) {
-
-  if (data.switch1 == 1){
-  Wire.write(1);
-  lastValue1 = data.switch1;
-
-  }else if (data.switch1 == 0) {
-   Wire.write(2);
-   lastValue1 = data.switch1;
-  }
-  }
-
-  //Button 2
-  if (lastValue2 != data.switch2) {
-
-  if (data.switch2 == 1){
-  Wire.write(3);
-  lastValue2 = data.switch2;
-
-  }else if (data.switch2 == 0) {
-   Wire.write(4);
-   lastValue2 = data.switch2;
-  }
-  }
-
-  //Pot 1
-  if (lastValue3 != data.dial1) {
-  Wire.write(data.dial1);
-  lastValue3 = data.dial1;
-  }
-
-  //Pot 2
-  if (lastValue4 != data.dial2) {
-  Wire.write(data.dial2);
-  lastValue4 = data.dial2;
-  }
-
-  Wire.endTransmission();
-}
