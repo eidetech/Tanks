@@ -37,7 +37,7 @@ struct packetdata {
   byte L_UD; //Left stick Up-Down
   byte L_LR; //Left stick Left-Right
   byte R_UD; //Right stick Up-Down
-  byte L_LR; //Right stick Left-Right
+  byte R_LR; //Right stick Left-Right
   byte dial1; //Left dial
   byte dial2; // Right dial
   byte switch1; //Left switch
@@ -48,8 +48,8 @@ struct packetdata {
 packetdata data;
 
 //Servo ESC objects
-Servo left_servo;
-Servo right_servo;
+Servo left_motor;
+Servo right_motor;
 
 void setup()
 {
@@ -67,6 +67,10 @@ void setup()
   //Attach servos
   left_motor.attach(L_MOTOR);
   right_motor.attach(R_MOTOR);
+  // Reset values to zero
+  data.L_UD = 90;
+  data.L_LR = 90;
+  delay(5000); // Wait for ESC to boot
 }
 
 void loop() {
@@ -74,23 +78,29 @@ void loop() {
   if ( radio.available() ) {
   radio.read(&data, sizeof(packetdata));
 
+
+
   //DRIVE
   //LEFT FORWARD
   if (data.L_UD > 125) {
-    int map_L_U = map(data.L_UD, 125, 255, 0, 255);
+    int map_L_U = map(data.L_UD, 125, 237, 97, 130);
     left_motor.write(map_L_U);
 
-delay(10);
-    }else if (data.L_UD >= 125){
-    left_motor.write(0);
-    }
-delay(10);
+Serial.println("FWD");
+Serial.println(map_L_U);
+  }
+
+//delay(10);
+
 
    //LEFT BACKWARD
      if (data.L_UD < 118) {
-     int map_L_D = map(data.L_UD, 118, 0, 0, -255);
+     int map_L_D = map(data.L_UD, 118, 0, 90, 50);
      left_motor.write(map_L_D);
+Serial.println("BWD");
+Serial.println(map_L_D);
      }
+/*
 
      //RIGHT FORWARD
      if (data.R_UD > 125) {
@@ -108,6 +118,6 @@ delay(10);
         int map_R_D = map(data.R_UD, 118, 0, 0, -255);
         right_motor.write(map_R_D);
         }
-
+*/
   }
 }
