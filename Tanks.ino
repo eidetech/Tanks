@@ -100,7 +100,7 @@ Serial.println(map_L_U);
 Serial.println("BWD");
 Serial.println(map_L_D);
      }
-/*
+
 
      //RIGHT FORWARD
      if (data.R_UD > 125) {
@@ -118,6 +118,6 @@ Serial.println(map_L_D);
         int map_R_D = map(data.R_UD, 118, 0, 0, -255);
         right_motor.write(map_R_D);
         }
-*/
+
   }
 }
