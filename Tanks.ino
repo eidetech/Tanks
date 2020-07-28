@@ -82,12 +82,13 @@ void loop() {
 
   //DRIVE
   //LEFT FORWARD
-  if (data.L_UD > 125) {
-    int map_L_U = map(data.L_UD, 125, 237, 97, 130);
+  if (data.L_UD > 139) {
+    int map_L_U = map(data.L_UD, 139, 255, 97, 130);
     left_motor.write(map_L_U);
 
 Serial.println("FWD");
 Serial.println(map_L_U);
+Serial.println(data.L_UD);
   }
 
 //delay(10);
@@ -95,29 +96,33 @@ Serial.println(map_L_U);
 
    //LEFT BACKWARD
      if (data.L_UD < 118) {
-     int map_L_D = map(data.L_UD, 118, 0, 90, 50);
+     int map_L_D = map(data.L_UD, 118, 2, 90, 50);
      left_motor.write(map_L_D);
 Serial.println("BWD");
 Serial.println(map_L_D);
+Serial.println(data.L_UD);
      }
 
+//RIGHT FORWARD
+  if (data.R_UD > 139) {
+    int map_R_U = map(data.R_UD, 139, 255, 97, 130);
+    right_motor.write(map_R_U);
 
-     //RIGHT FORWARD
-     if (data.R_UD > 125) {
-       int map_R_U = map(data.R_UD, 125, 255, 0, 255);
-       left_motor.write(map_R_U);
+Serial.println("FWD");
+Serial.println(map_R_U);
+Serial.println(data.R_UD);
+  }
 
-   delay(10);
- }else if (data.R_UD >= 125){
-       right_motor.write(0);
-       }
-   delay(10);
+//delay(10);
 
-      //RIGHT BACKWARD
-        if (data.R_UD < 118) {
-        int map_R_D = map(data.R_UD, 118, 0, 0, -255);
-        right_motor.write(map_R_D);
-        }
 
+   //RIGHT BACKWARD
+     if (data.R_UD < 118) {
+     int map_R_D = map(data.R_UD, 118, 2, 90, 50);
+     right_motor.write(map_R_D);
+Serial.println("BWD");
+Serial.println(map_R_D);
+Serial.println(data.R_UD);
+     }
   }
 }
