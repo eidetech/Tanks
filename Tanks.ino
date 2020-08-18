@@ -1,5 +1,5 @@
 /*
-3D printed tanks 2020
+3D printed tank 2020
 Main reveiver sketch
 
 29.03.2020
@@ -33,7 +33,7 @@ RF24 radio(RADIO_1, RADIO_2);
 
 /* Struct to hold variables from receiver
 The size of this struct should not exceed 32 bytes */
-struct packetdata {
+struct controllerdata {
   byte L_UD; //Left stick Up-Down
   byte L_LR; //Left stick Left-Right
   byte R_UD; //Right stick Up-Down
@@ -45,7 +45,7 @@ struct packetdata {
 };
 
 //Data object
-packetdata data;
+controllerdata data;
 
 //Servo ESC objects
 Servo left_motor;
@@ -76,7 +76,7 @@ void setup()
 void loop() {
 
   if ( radio.available() ) {
-  radio.read(&data, sizeof(packetdata));
+  radio.read(&data, sizeof(controllerdata));
 
 
 
